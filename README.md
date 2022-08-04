@@ -7,9 +7,10 @@ Labs of MIT 6.824: Distributed Systems.
 
 
 ### Lab 2 Raft
-- [ ] 2A
-- [ ] 2B
-- [ ] 2C
+- [ ] 2A. leader election
+- [ ] 2B. log
+- [ ] 2C. persistence
+- [ ] 2D. log compaction
 
 ### Lab 3 Fault-tolerant Key/Value Service
 - [ ] 3A. Key/value service without snapshots
