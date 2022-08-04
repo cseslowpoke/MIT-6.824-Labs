@@ -1,10 +1,16 @@
 package mr
 
-import "fmt"
-import "log"
-import "net/rpc"
-import "hash/fnv"
-
+import (
+	"encoding/json"
+	"fmt"
+	"hash/fnv"
+	"io/ioutil"
+	"log"
+	"net/rpc"
+	"os"
+	"strconv"
+	"time"
+)
 
 //
 // Map functions return a slice of KeyValue.
@@ -24,7 +30,6 @@ func ihash(key string) int {
 	return int(h.Sum32() & 0x7fffffff)
 }
 
-
 //
 // main/mrworker.go calls this function.
 //
@@ -34,9 +39,82 @@ func Worker(mapf func(string, string) []KeyValue,
 	// Your worker implementation here.
 
 	// uncomment to send the Example RPC to the coordinator.
-	// CallExample()
+	// // CallExample()
+	args := Args{}
+	reply := Reply{}
+	for {
+		call("Coordinator.RpcHandlers", &args, &reply)
+		if reply.IsMap {
+			Map(mapf, args, reply)
+		} else {
+			Reduce(reducef, args, reply)
+		}
+		args = Args{}
+		reply = Reply{}
+		time.Sleep(time.Second)
+	}
 
 }
+
+func Reduce(reducef func(string, []string) string, args Args, reply Reply) {
+	kva := make(map[string][]string)
+	for i := 1; i <= reply.NReduce; i++ {
+		file, err := os.Open("mr-" + strconv.Itoa(i) + "-" + strconv.Itoa(reply.ID))
+		if err != nil {
+			log.Fatalf("cannot open mr-"+strconv.Itoa(reply.ID)+"-"+strconv.Itoa(i), reply.Name)
+		}
+		dec := json.NewDecoder(file)
+		for {
+			var kv KeyValue
+			if err := dec.Decode(&kv); err != nil {
+				break
+			}
+			kva[kv.Key] = append(kva[kv.Key], kv.Value)
+		}
+	}
+	data := make(map[string]string)
+	for i := range kva {
+		tmp := reducef(i, kva[i])
+		data[i] = tmp
+	}
+	file, err := ioutil.TempFile("", "")
+	if err != nil {
+		log.Fatalf("cannot create file")
+	}
+	for i := range data {
+		file.WriteString(i + " " + data[i] + "\n")
+	}
+	os.Rename(file.Name(), "mr-out-"+strconv.Itoa(reply.ID))
+}
+
+func Map(mapf func(string, string) []KeyValue, args Args, reply Reply) {
+	file, err := os.Open(reply.Name)
+	if err != nil {
+		log.Fatalf("cannot open %v", reply.Name)
+	}
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatalf("cannot read %v", reply.Name)
+	}
+	file.Close()
+	kva := mapf(reply.Name, string(content))
+	enc := []json.Encoder{}
+	for i := 1; i <= reply.NReduce; i++ {
+		file, err := ioutil.TempFile("", "")
+		if err != nil {
+			log.Fatalf("cannot create file")
+		}
+		enc = append(enc, *json.NewEncoder(file))
+		os.Rename(file.Name(), "mr-"+strconv.Itoa(reply.ID)+"-"+strconv.Itoa(i))
+	}
+	for i := range kva {
+
+		hash := ihash(kva[i].Key) % reply.NReduce
+		enc[hash].Encode(kva[i])
+	}
+}
+
+//
 
 //
 // example function to show how to make an RPC call to the coordinator.
@@ -80,12 +158,6 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 		log.Fatal("dialing:", err)
 	}
 	defer c.Close()
-
 	err = c.Call(rpcname, args, reply)
-	if err == nil {
-		return true
-	}
-
-	fmt.Println(err)
-	return false
+	return err == nil
 }

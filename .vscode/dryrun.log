@@ -1,0 +1,14 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/daidaiso/Desktop/桌面 - 呆呆獸的MacBook Air/6.824/lab1'
+ 
+Checking that your submission builds correctly...
+ 
+unknown lab: Makefile
+
+make: *** [check-Makefile] Error 1
+make: Failed to remake makefile `Makefile'.
+make: *** No targets specified and no makefile found.  Stop.
+
+rm check-Makefile
+make: Leaving directory `/Users/daidaiso/Desktop/桌面 - 呆呆獸的MacBook Air/6.824/lab1'
+ 
