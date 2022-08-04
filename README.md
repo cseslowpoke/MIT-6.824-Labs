@@ -12,11 +12,11 @@ Labs of MIT 6.824: Distributed Systems.
 - [ ] 2C
 
 ### Lab 3 Fault-tolerant Key/Value Service
-- [ ] Key/value service without log compaction
-- [ ] Key/value service with log compaction
+- [ ] 3A. Key/value service without snapshots
+- [ ] 3B. Key/value service with snapshots
 
 ### Lab 4 Sharded Key/Value Service
-- [ ] The Shard Master
-- [ ] Sharded Key/Value Server
-- [ ] Garbage collection of state
-- [ ] Client requests during configuration changes
+- [ ] 4A. The Shard controller 
+- [ ] 4B. Sharded Key/Value Server
+- [ ] Ex1. Garbage collection of state
+- [ ] Ex2. Client requests during configuration changes
