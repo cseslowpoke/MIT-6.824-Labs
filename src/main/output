@@ -10,6 +10,7 @@ end--- reduce parallelism test: PASS
 *** Starting job count test.
 end--- job count test: PASS
 *** Starting early exit test.
-endmr-wc-all-final mr-wc-all-initial differ: char 56, line 3
---- output changed after first worker exited
---- early exit test: FAIL
+end--- early exit test: PASS
+*** Starting crash test.
+end--- crash test: PASS
+*** PASSED ALL TESTS
